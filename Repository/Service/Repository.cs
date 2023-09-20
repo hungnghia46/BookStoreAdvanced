@@ -33,7 +33,6 @@ namespace Repository.Service
             {
                 return new List<T>();
             }
-            
         }
         public async Task<IEnumerable<T>> getAllAsync()
         {

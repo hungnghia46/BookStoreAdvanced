@@ -40,7 +40,7 @@ namespace BookStoreAdvanced.Controllers
                 Address = userView.Address,
                 CreatedAt = DateTime.UtcNow,
                 Email = userView.Email,
-                DateOfBirth = DateTime.UtcNow,
+                DateOfBirth = userView.DateOfBirth,
                 FirstName = userView.FirstName,
                 LastName = userView.LastName,
                 Password = userView.Password,
@@ -66,7 +66,7 @@ namespace BookStoreAdvanced.Controllers
                 {
                     Id = Guid.NewGuid(),
                     CreatedAt = DateTime.UtcNow,
-                    DateOfBirth = DateTime.UtcNow,
+                    DateOfBirth = item.DateOfBirth,
                     Email = item.Email,
                     FirstName = item.FirstName,
                     LastName = item.LastName,

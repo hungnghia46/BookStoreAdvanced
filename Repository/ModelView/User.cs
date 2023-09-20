@@ -22,7 +22,7 @@ public class User
     public string LastName { get; set; }
 
     [BsonElement("dateOfBirth")]
-    public DateTime DateOfBirth { get; set; }
+    public DateOnly DateOfBirth { get; set; }
 
     [BsonElement("address")]
     public Address Address { get; set; }

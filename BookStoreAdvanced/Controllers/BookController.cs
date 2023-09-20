@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using Repository.Model;
 using Repository.ModelView;
 using Repository.Service;
+using System.Linq.Expressions;
 
 namespace BookStoreAdvanced.Controllers
 {
@@ -11,26 +12,67 @@ namespace BookStoreAdvanced.Controllers
     [ApiController]
     public class BookController : ControllerBase, IBookController
     {
-        public IRepository<Book> _bookRepos;
-        public BookController(IMongoClient client)
+        private readonly ILogger<BookController> _logger;
+        private readonly IRepository<Book> _bookRepos;
+        public BookController(ILogger<BookController> logger, IMongoClient client)
         {
+            _logger = logger;
             _bookRepos = new Repository<Book>(client, "BookStoreDB", "Books");
         }
         /// <summary>
         /// Get the list all Book
         /// </summary>
         /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("Get-All-Book")]
         public async Task<IActionResult> GetAllBook()
         {
-            IEnumerable<Book> books = await _bookRepos.getAllAsync();
-            return Ok(books);
+            try
+            {
+                IEnumerable<Book> books = await _bookRepos.getAllAsync();
+                _logger.LogInformation("Retrieved {Count} books.", books.Count());
+                return Ok(books);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving books.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
+            }
+        }
+        /// <summary>
+        /// Get a book by it Id
+        /// </summary>
+        /// <param name="id">The Id of book to search</param>
+        /// <returns>Book</returns>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpGet("Get-By-Id")]
+        public async Task<IActionResult> GetBookById([FromQuery] Guid id)
+        {
+            Expression<Func<Book, bool>> filterExpresstion = x => x.Id == id;
+            IEnumerable<Book> filtedBookList = await _bookRepos.GetByFilterAsync(filterExpresstion);
+            return Ok(filtedBookList);
+        }
+        /// <summary>
+        /// Get a book by it title
+        /// </summary>
+        /// <param name="title">The title of book to search</param>
+        /// <returns>Book</returns>
+        [HttpGet("Get-Book-By-Title")]
+        public async Task<IActionResult> GetBookByName([FromQuery] string title)
+        {
+            Expression<Func<Book, bool>> filterExpresstion = x => x.Title == title;
+            IEnumerable<Book> filtedBookList = await _bookRepos.GetByFilterAsync(filterExpresstion);
+            return Ok(filtedBookList);
         }
         /// <summary>
         /// Add one new book
         /// </summary>
         /// <param name="bookView"></param>
         /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("Add-One-Book")]
         public async Task<IActionResult> AddOneBook(BookView bookView)
         {
@@ -57,6 +99,8 @@ namespace BookStoreAdvanced.Controllers
         /// </summary>
         /// <param name="bookViews"></param>
         /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("Add-Many-Book")]
         public async Task<IActionResult> AddManyBook(List<BookView> bookViews)
         {
@@ -67,7 +111,8 @@ namespace BookStoreAdvanced.Controllers
                 {
                     Id = Guid.NewGuid(),
                     Author = item.Author,
-                    CreatedAt = item.CreatedAt,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
                     Description = item.Description,
                     Genre = item.Genre,
                     ImageUrl = item.ImageUrl,
@@ -81,6 +126,51 @@ namespace BookStoreAdvanced.Controllers
             await _bookRepos.addManyItem(bookList);
             return Ok(bookList);
         }
+        /// <summary>
+        /// update A book base on it Id
+        /// </summary>
+        /// <param name="ID">Id of book update</param>
+        /// <param name="bookView"></param>
+        /// <returns>Updated book</returns>
 
+        [HttpPut("Update-Book-By-Id")]
+        public async Task<IActionResult> UpdateBookById([FromQuery] Guid ID, BookView bookView)
+        {
+            var update = Builders<Book>.Update
+                .Set("title", bookView.Title)
+                .Set("author", bookView.Author)
+                .Set("description", bookView.Description)
+                .Set("genre", bookView.Genre)
+                .Set("imageUrl", bookView.ImageUrl)
+                .Set("publicationYear", bookView.PublicationYear)
+                .Set("isbn", bookView.ISBN)
+                .Set("inventoryQuantity", bookView.InventoryQuantity)
+                .Set("updatedAt", DateTime.UtcNow)
+                .Set("price", bookView.Price);
+
+            Book updatedBook = await _bookRepos.updateItemByValue(ID, update);
+            if (updatedBook != null)
+            {
+                return Ok(updatedBook);
+            }
+            return BadRequest();
+        }
+        /// <summary>
+        /// Delete a book base on it Id
+        /// </summary>
+        /// <param name="id">Id of book</param>
+        /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpDelete("Delete-Book")]
+        public async Task<IActionResult> DeleteBookById([FromQuery]Guid id)
+        {
+            bool isDelete =await _bookRepos.removeItemByValue(id);
+            if (isDelete)
+            {
+                return Ok();
+            }
+            return BadRequest();
+        }
     }
 }
