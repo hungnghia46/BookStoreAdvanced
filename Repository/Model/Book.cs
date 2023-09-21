@@ -10,8 +10,11 @@ namespace Repository.Model
 {
     public class Book
     {
+        private DateTime _createdAtDate;
+        private DateTime _updatedAtDate;
+
         [BsonId]
-       // [BsonRepresentation(BsonType.ObjectId)]
+        // [BsonRepresentation(BsonType.ObjectId)]
         public Guid Id { get; set; }
 
         [BsonElement("title")]
@@ -42,9 +45,39 @@ namespace Repository.Model
         public string ImageUrl { get; set; }
 
         [BsonElement("createdAt")]
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt
+        {
+            get
+            {
+                // Specify the time zone you want to convert to (GMT+7)
+                TimeZoneInfo targetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // This is the ID for GMT+7
+
+                // Convert the existing DateTime (_date) to the target time zone (GMT+7)
+                DateTime gmtPlus7Time = TimeZoneInfo.ConvertTime(_createdAtDate, targetTimeZone);
+
+                return gmtPlus7Time;
+            }
+            set
+            {
+                _createdAtDate = value;
+            }
+        }
 
         [BsonElement("updatedAt")]
-        public DateTime UpdatedAt { get; set; }
+        public DateTime UpdatedAt
+        {
+            get
+            {
+                TimeZoneInfo targetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // This is the ID for GMT+7
+
+                DateTime gmtPlus7Time = TimeZoneInfo.ConvertTime(_updatedAtDate, targetTimeZone);
+
+                return gmtPlus7Time;
+            }
+            set
+            {
+                _updatedAtDate = value;
+            }
+        }
     }
 }

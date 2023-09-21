@@ -16,7 +16,5 @@ namespace Repository.ModelView
         public string LastName { get; set; }
         public DateOnly DateOfBirth { get; set; }
         public Address Address { get; set; }     
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
     }
 }

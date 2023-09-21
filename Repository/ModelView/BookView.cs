@@ -18,7 +18,5 @@ namespace Repository.ModelView
         public decimal Price { get; set; }
         public int InventoryQuantity { get; set; }
         public string ImageUrl { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
     }
 }

@@ -54,7 +54,7 @@ namespace Repository.Service
             var updateResult = await _collection.UpdateOneAsync(filter, updateDefinition);
             if (updateResult.ModifiedCount > 0)
             {
-                var updatedItem = await _collection.Find(filter).FirstOrDefaultAsync();
+                T updatedItem = await _collection.Find(filter).FirstOrDefaultAsync();
                 return updatedItem;
             }
             else

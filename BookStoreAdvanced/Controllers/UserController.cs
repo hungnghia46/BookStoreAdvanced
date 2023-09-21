@@ -34,18 +34,20 @@ namespace BookStoreAdvanced.Controllers
         [HttpPost("Add-One-User")]
         public async Task<IActionResult> AddOneUser(UserView userView)
         {
+            // You can replace this with the correct time zone ID for GMT+7
+            TimeZoneInfo gmtPlus7TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); 
             User user = new User
             {
                 Id = Guid.NewGuid(),
                 Address = userView.Address,
-                CreatedAt = DateTime.UtcNow,
+                Username = userView.Username,
                 Email = userView.Email,
                 DateOfBirth = userView.DateOfBirth,
                 FirstName = userView.FirstName,
                 LastName = userView.LastName,
                 Password = userView.Password,
-                UpdatedAt = DateTime.UtcNow,
-                Username = userView.Username,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
 
             };
             await _userRepos.addOneItem(user);
@@ -59,27 +61,23 @@ namespace BookStoreAdvanced.Controllers
         [HttpPost("Add-Many-User")]
         public async Task<IActionResult> AddManyUser(List<UserView> userViews)
         {
+            TimeZoneInfo gmtPlus7TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
             List<User> users = new List<User>();
             foreach (UserView item in userViews)
             {
                 users.Add(new User
                 {
                     Id = Guid.NewGuid(),
-                    CreatedAt = DateTime.UtcNow,
                     DateOfBirth = item.DateOfBirth,
                     Email = item.Email,
                     FirstName = item.FirstName,
                     LastName = item.LastName,
                     Password = item.Password,
-                    UpdatedAt = DateTime.UtcNow,
                     Username = item.Username,
-                    Address = new Address
-                    {
-                        City = item.Address.City,
-                        State = item.Address.State,
-                        Street = item.Address.Street,
-                        ZipCode = item.Address.ZipCode,
-                    }
+                    Address = item.Address,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 });
             }
             await _userRepos.addManyItem(users);

@@ -4,7 +4,9 @@ using MongoDB.Driver;
 using Repository.Model;
 using Repository.ModelView;
 using Repository.Service;
+using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace BookStoreAdvanced.Controllers
 {
@@ -18,6 +20,7 @@ namespace BookStoreAdvanced.Controllers
         {
             _logger = logger;
             _bookRepos = new Repository<Book>(client, "BookStoreDB", "Books");
+
         }
         /// <summary>
         /// Get the list all Book
@@ -48,11 +51,16 @@ namespace BookStoreAdvanced.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("Get-By-Id")]
-        public async Task<IActionResult> GetBookById([FromQuery] Guid id)
+        public async Task<IActionResult> GetBookById([FromQuery][Required] Guid id)
         {
             Expression<Func<Book, bool>> filterExpresstion = x => x.Id == id;
             IEnumerable<Book> filtedBookList = await _bookRepos.GetByFilterAsync(filterExpresstion);
-            return Ok(filtedBookList);
+            if (filtedBookList.Any())
+            {
+                _logger.LogInformation($"Book:{filtedBookList.First().Title} retrieved");
+                return Ok(filtedBookList);
+            }
+            return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error");
         }
         /// <summary>
         /// Get a book by it title
@@ -60,7 +68,7 @@ namespace BookStoreAdvanced.Controllers
         /// <param name="title">The title of book to search</param>
         /// <returns>Book</returns>
         [HttpGet("Get-Book-By-Title")]
-        public async Task<IActionResult> GetBookByName([FromQuery] string title)
+        public async Task<IActionResult> GetBookByName([FromQuery][Required] string title)
         {
             Expression<Func<Book, bool>> filterExpresstion = x => x.Title == title;
             IEnumerable<Book> filtedBookList = await _bookRepos.GetByFilterAsync(filterExpresstion);
@@ -80,7 +88,6 @@ namespace BookStoreAdvanced.Controllers
             {
                 Id = Guid.NewGuid(),
                 Author = bookView.Author,
-                CreatedAt = bookView.CreatedAt,
                 Description = bookView.Description,
                 Genre = bookView.Genre,
                 ImageUrl = bookView.ImageUrl,
@@ -89,13 +96,14 @@ namespace BookStoreAdvanced.Controllers
                 ISBN = bookView.ISBN,
                 PublicationYear = bookView.PublicationYear,
                 Title = bookView.Title,
-                UpdatedAt = bookView.UpdatedAt,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
             };
             await _bookRepos.addOneItem(book);
             return Ok(book);
         }
         /// <summary>
-        /// Add A array of book
+        /// Add A list of book
         /// </summary>
         /// <param name="bookViews"></param>
         /// <returns></returns>
@@ -110,9 +118,8 @@ namespace BookStoreAdvanced.Controllers
                 bookList.Add(new Book
                 {
                     Id = Guid.NewGuid(),
+                    Title = item.Title,
                     Author = item.Author,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
                     Description = item.Description,
                     Genre = item.Genre,
                     ImageUrl = item.ImageUrl,
@@ -120,7 +127,8 @@ namespace BookStoreAdvanced.Controllers
                     ISBN = item.ISBN,
                     Price = item.Price,
                     PublicationYear = item.PublicationYear,
-                    Title = item.Title
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 });
             }
             await _bookRepos.addManyItem(bookList);
@@ -134,8 +142,9 @@ namespace BookStoreAdvanced.Controllers
         /// <returns>Updated book</returns>
 
         [HttpPut("Update-Book-By-Id")]
-        public async Task<IActionResult> UpdateBookById([FromQuery] Guid ID, BookView bookView)
+        public async Task<IActionResult> UpdateBookById([FromQuery][Required] Guid ID, BookView bookView)
         {
+
             var update = Builders<Book>.Update
                 .Set("title", bookView.Title)
                 .Set("author", bookView.Author)
@@ -145,8 +154,8 @@ namespace BookStoreAdvanced.Controllers
                 .Set("publicationYear", bookView.PublicationYear)
                 .Set("isbn", bookView.ISBN)
                 .Set("inventoryQuantity", bookView.InventoryQuantity)
-                .Set("updatedAt", DateTime.UtcNow)
-                .Set("price", bookView.Price);
+                .Set("price", bookView.Price)
+                .Set("updatedAt", DateTime.UtcNow);
 
             Book updatedBook = await _bookRepos.updateItemByValue(ID, update);
             if (updatedBook != null)
@@ -163,9 +172,9 @@ namespace BookStoreAdvanced.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpDelete("Delete-Book")]
-        public async Task<IActionResult> DeleteBookById([FromQuery]Guid id)
+        public async Task<IActionResult> DeleteBookById([FromQuery][Required] Guid id)
         {
-            bool isDelete =await _bookRepos.removeItemByValue(id);
+            bool isDelete = await _bookRepos.removeItemByValue(id);
             if (isDelete)
             {
                 return Ok();
