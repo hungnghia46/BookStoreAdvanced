@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  bookstoreadvanced:
+    image: ${DOCKER_REGISTRY-}bookstoreadvanced
+    build:
+      context: .
+      dockerfile: BookStoreAdvanced\Dockerfile
