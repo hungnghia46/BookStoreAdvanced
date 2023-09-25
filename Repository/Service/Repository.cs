@@ -38,7 +38,7 @@ namespace Repository.Service
         {
             return await _collection.Find(_ => true).ToListAsync();
         }
-        public async Task<IEnumerable<T>> GetByFilterAsync(Expression<Func<T, bool>> filterExpression)
+        public async Task<IEnumerable<T>> GetsByFilterAsync(Expression<Func<T, bool>> filterExpression)
         {
             return await _collection.Find(filterExpression).ToListAsync();
         }

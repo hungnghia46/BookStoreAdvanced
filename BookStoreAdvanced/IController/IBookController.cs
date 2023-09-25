@@ -6,11 +6,11 @@ namespace BookStoreAdvanced.IController
     public interface IBookController
     {
         public Task<IActionResult> GetAllBook();
-        public Task<IActionResult> GetBookById(Guid id);
-        public Task<IActionResult> GetBookByName(string name);
+        public Task<IActionResult> GetBookById(String id);
+        public Task<IActionResult> GetBookByName(String name);
         public Task<IActionResult> AddOneBook(BookView bookView);
         public Task<IActionResult> AddManyBook(List<BookView> bookViews);
-        public Task<IActionResult> UpdateBookById(Guid ID, BookView bookView);
-        public Task<IActionResult> DeleteBookById(Guid id);
+        public Task<IActionResult> UpdateBookById(String ID, BookView bookView);
+        public Task<IActionResult> DeleteBookById(String id);
     }
 }

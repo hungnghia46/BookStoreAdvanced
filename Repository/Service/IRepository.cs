@@ -10,6 +10,6 @@ namespace Repository.Service
         Task<List<T>> addManyItem(List<T> items);
         Task<bool> removeItemByValue(object value);
         Task<T> updateItemByValue(object value, UpdateDefinition<T> updateDefinition);
-        Task<IEnumerable<T>> GetByFilterAsync(Expression<Func<T, bool>> filterExpression);
+        Task<IEnumerable<T>> GetsByFilterAsync(Expression<Func<T, bool>> filterExpression);
     }
 }

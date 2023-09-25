@@ -54,7 +54,7 @@ if (app.Environment.IsDevelopment())
 //Use SwaggerUI for showing summary
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swagger Demo Api");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Book Store API");
     c.RoutePrefix = "";
 });
 app.UseCors();

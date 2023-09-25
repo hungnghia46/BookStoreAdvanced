@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using Repository.Model;
 using Repository.ModelView;
 using Repository.Service;
+using Repository.Tools;
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 using static System.Reflection.Metadata.BlobBuilder;
@@ -16,11 +17,12 @@ namespace BookStoreAdvanced.Controllers
     {
         private readonly ILogger<BookController> _logger;
         private readonly IRepository<Book> _bookRepos;
+        private readonly IRepository<BookGenre> _genreRepos;
         public BookController(ILogger<BookController> logger, IMongoClient client)
         {
             _logger = logger;
             _bookRepos = new Repository<Book>(client, "BookStoreDB", "Books");
-
+            _genreRepos = new Repository<BookGenre>(client, "BookStoreDB", "BookGenre");
         }
         /// <summary>
         /// Get the list all Book
@@ -51,10 +53,10 @@ namespace BookStoreAdvanced.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("Get-By-Id")]
-        public async Task<IActionResult> GetBookById([FromQuery][Required] Guid id)
+        public async Task<IActionResult> GetBookById([FromQuery][Required] String id)
         {
             Expression<Func<Book, bool>> filterExpresstion = x => x.Id == id;
-            IEnumerable<Book> filtedBookList = await _bookRepos.GetByFilterAsync(filterExpresstion);
+            IEnumerable<Book> filtedBookList = await _bookRepos.GetsByFilterAsync(filterExpresstion);
             if (filtedBookList.Any())
             {
                 _logger.LogInformation($"Book:{filtedBookList.First().Title} retrieved");
@@ -70,8 +72,8 @@ namespace BookStoreAdvanced.Controllers
         [HttpGet("Get-Book-By-Title")]
         public async Task<IActionResult> GetBookByName([FromQuery][Required] string title)
         {
-            Expression<Func<Book, bool>> filterExpresstion = x => x.Title == title;
-            IEnumerable<Book> filtedBookList = await _bookRepos.GetByFilterAsync(filterExpresstion);
+            Expression<Func<Book, bool>> filterExpression = x => x.Title == title;
+            IEnumerable<Book> filtedBookList = await _bookRepos.GetsByFilterAsync(filterExpression);
             return Ok(filtedBookList);
         }
         /// <summary>
@@ -84,12 +86,20 @@ namespace BookStoreAdvanced.Controllers
         [HttpPost("Add-One-Book")]
         public async Task<IActionResult> AddOneBook(BookView bookView)
         {
+            try
+            {
+                Expression<Func<BookGenre, bool>> filterExpression = x => x.Name == bookView.Genre;
+                IEnumerable<BookGenre> bookGenres = await _genreRepos.GetsByFilterAsync(filterExpression);
+                BookGenre bookGenre = bookGenres.First();
+            }catch (Exception) {
+                return UnprocessableEntity($"Genre: {bookView.Genre} not valid!");
+            }
             Book book = new Book
             {
-                Id = Guid.NewGuid(),
+                Id = IdGenerator.GenerateId(),
                 Author = bookView.Author,
                 Description = bookView.Description,
-                Genre = bookView.Genre,
+                BookGenre = bookView.Genre,
                 ImageUrl = bookView.ImageUrl,
                 InventoryQuantity = bookView.InventoryQuantity,
                 Price = bookView.Price,
@@ -117,11 +127,11 @@ namespace BookStoreAdvanced.Controllers
             {
                 bookList.Add(new Book
                 {
-                    Id = Guid.NewGuid(),
+                    Id = IdGenerator.GenerateId(),
                     Title = item.Title,
                     Author = item.Author,
                     Description = item.Description,
-                    Genre = item.Genre,
+                    BookGenre = item.Genre,
                     ImageUrl = item.ImageUrl,
                     InventoryQuantity = item.InventoryQuantity,
                     ISBN = item.ISBN,
@@ -131,8 +141,14 @@ namespace BookStoreAdvanced.Controllers
                     UpdatedAt = DateTime.UtcNow
                 });
             }
-            await _bookRepos.addManyItem(bookList);
-            return Ok(bookList);
+            var bookAddedList = await _bookRepos.addManyItem(bookList);
+            if (bookAddedList.Count > 0)
+            {
+                _logger.LogInformation($"{bookAddedList.Count} added!");
+                return Ok(bookList);
+            }
+            return StatusCode(StatusCodes.Status500InternalServerError);
+
         }
         /// <summary>
         /// update A book base on it Id
@@ -142,7 +158,7 @@ namespace BookStoreAdvanced.Controllers
         /// <returns>Updated book</returns>
 
         [HttpPut("Update-Book-By-Id")]
-        public async Task<IActionResult> UpdateBookById([FromQuery][Required] Guid ID, BookView bookView)
+        public async Task<IActionResult> UpdateBookById([FromQuery][Required] String ID, BookView bookView)
         {
 
             var update = Builders<Book>.Update
@@ -160,6 +176,7 @@ namespace BookStoreAdvanced.Controllers
             Book updatedBook = await _bookRepos.updateItemByValue(ID, update);
             if (updatedBook != null)
             {
+                _logger.LogInformation($"Book: {updatedBook.Id} is updated!");
                 return Ok(updatedBook);
             }
             return BadRequest();
@@ -172,14 +189,15 @@ namespace BookStoreAdvanced.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpDelete("Delete-Book")]
-        public async Task<IActionResult> DeleteBookById([FromQuery][Required] Guid id)
+        public async Task<IActionResult> DeleteBookById([FromQuery][Required] String id)
         {
             bool isDelete = await _bookRepos.removeItemByValue(id);
             if (isDelete)
             {
-                return Ok();
+                _logger.LogInformation($"Book:{id} is deleted!");
+                return Ok($"Book id: {id} is deleted!");
             }
-            return BadRequest();
+            return StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
 }

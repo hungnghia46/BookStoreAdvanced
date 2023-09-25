@@ -14,8 +14,7 @@ namespace Repository.Model
         private DateTime _updatedAtDate;
 
         [BsonId]
-        // [BsonRepresentation(BsonType.ObjectId)]
-        public Guid Id { get; set; }
+        public String Id { get; set; }
 
         [BsonElement("title")]
         public string Title { get; set; }
@@ -24,7 +23,7 @@ namespace Repository.Model
         public string Author { get; set; }
 
         [BsonElement("genre")]
-        public string Genre { get; set; }
+        public String BookGenre { get; set; }
 
         [BsonElement("description")]
         public string Description { get; set; }
@@ -80,4 +79,6 @@ namespace Repository.Model
             }
         }
     }
+
+
 }
