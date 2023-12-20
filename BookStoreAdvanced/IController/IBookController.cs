@@ -5,7 +5,7 @@ namespace BookStoreAdvanced.IController
 {
     public interface IBookController
     {
-        public Task<IActionResult> GetAllBook();
+        public Task<IActionResult> GetAllBook(int page,int pageSize);
         public Task<IActionResult> GetBookById(String id);
         public Task<IActionResult> GetBookByName(String name);
         public Task<IActionResult> AddOneBook(BookView bookView);

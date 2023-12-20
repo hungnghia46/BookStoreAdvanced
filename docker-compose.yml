@@ -6,3 +6,13 @@ services:
     build:
       context: .
       dockerfile: BookStoreAdvanced/Dockerfile
+    ports:
+      - "80:80"
+  
+  # frontend:
+  #   image: ${DOCKER_REGISTRY-}frontend
+  #   build:
+  #     context: .
+  #     dockerfile: Frontend/Dockerfile  # Adjust the path to your frontend's Dockerfile
+  #   ports:
+  #     - "80:80"  # Map the container's port 80 to the host machine's port 80

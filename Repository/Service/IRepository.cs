@@ -11,5 +11,6 @@ namespace Repository.Service
         Task<bool> removeItemByValue(object value);
         Task<T> updateItemByValue(object value, UpdateDefinition<T> updateDefinition);
         Task<IEnumerable<T>> GetsByFilterAsync(Expression<Func<T, bool>> filterExpression);
+        public Task<IEnumerable<T>> GetPagedAsync(int skip, int limit);
     }
 }

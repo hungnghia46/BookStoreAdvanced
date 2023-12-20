@@ -46,11 +46,10 @@ builder.Services.AddSingleton<IMongoClient, MongoClient>(s =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 //Use SwaggerUI for showing summary
 app.UseSwaggerUI(c =>
 {

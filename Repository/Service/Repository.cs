@@ -62,5 +62,23 @@ namespace Repository.Service
                 return default(T);
             }
         }
+        public async Task<IEnumerable<T>> GetPagedAsync(int skip, int limit)
+        {
+            try
+            {
+                var result = await _collection
+                    .Find(_ => true) // You can apply any additional filtering here if needed
+                    .Skip(skip)
+                    .Limit(limit)
+                    .ToListAsync();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions or logging here
+                throw ex;
+            }
+        }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using Repository.Model;
 using Repository.Service;
@@ -14,7 +13,7 @@ namespace BookStoreAdvanced.Controllers
         private readonly IRepository<BookGenre> _bookGenreRepo;
         public BookGenreController(IMongoClient client)
         {
-            _bookGenreRepo = new Repository<BookGenre>(client, "BookStoreDB","BookGenre");
+            _bookGenreRepo = new Repository<BookGenre>(client, "BookStoreDB", "BookGenre");
         }
         [HttpPost]
         public async Task<IActionResult> addBookGender(BookGenreView genreView)

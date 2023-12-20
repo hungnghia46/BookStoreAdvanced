@@ -31,12 +31,19 @@ namespace BookStoreAdvanced.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("Get-All-Book")]
-        public async Task<IActionResult> GetAllBook()
+        public async Task<IActionResult> GetAllBook([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                IEnumerable<Book> books = await _bookRepos.getAllAsync();
+                // Calculate the number of items to skip based on the page number and page size
+                int skip = (page - 1) * pageSize;
+
+                // Retrieve a page of books using Skip and Limit
+                IEnumerable<Book> books = await _bookRepos.GetPagedAsync(skip, pageSize);
+
                 _logger.LogInformation("Retrieved {Count} books.", books.Count());
+
+                // Return the paginated results
                 return Ok(books);
             }
             catch (Exception ex)
